@@ -1,0 +1,263 @@
+from abc import ABCMeta, abstractmethod
+from random import randint, randrange,sample
+
+class Robot(object,metaclass=ABCMeta):
+
+    """
+    初始模型：
+    ：name
+    ：attact
+    ：magic
+    ：HP
+    ：MP
+    定义攻击动作fight
+    """
+
+    __slots__=("_name","_attact","_magic","_HP","_MP")
+
+    def __init__(self,name):
+        self._name=name
+        self._attact=randint(10,15)
+        self._magic=randint(8,12)
+        self._HP=randint(100,120)
+        self._MP=randint(80,100)
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def attact(self):
+        return self._attact
+    @attact.setter
+    def attact(self,attact):
+        self._attact=attact
+
+    @property
+    def magic(self):
+        return self._magic
+    @magic.setter
+    def magic(self,magic):
+        self._magic=magic
+
+    @property
+    def hp(self):
+        return self._HP
+    @hp.setter
+    def hp(self,HP):
+        self._HP=HP
+
+    @property
+    def mp(self):
+        return self._MP
+    @mp.setter
+    def mp(self,MP):
+        self._MP=MP
+
+    #@abstractmethod
+    def fight(self,fight_type,other):
+        if fight_type=="attact":
+            """
+            物理攻击，other减self.attact的HP，self减other.attact的HP
+            """
+            print("发起了物理攻击")
+            other.hp-=self._attact
+            self._HP-=other.attact
+            pass
+        elif fight_type=="magic":
+            """
+            魔法攻击，判断self.mp是否大于magic
+            """
+            if self._MP >= self._magic:
+                """
+                魔法攻击，other减self.magic的HP，self减self.magic的MP
+                """
+                print("发起了魔法攻击")
+                other.hp-=self._magic*5
+                self._MP-=self._magic
+                pass
+            else:
+                """
+                蓝不够
+                """
+                print("蓝不够，无法攻击")
+
+
+class Hero(Robot):
+    """
+    英雄Model
+    name
+    display 显示当前状态
+    """
+
+    def __init__(self,name):
+        super().__init__(name)
+        self._level=1
+        self._experience=0
+        self._need_ex = 2
+        self.max_hp=self._HP
+        self.max_mp=self._MP
+        
+    
+
+    def __new__(cls,name):
+        print("☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆")
+        print("☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆")
+        print("☆☆☆❤❤❤❤❤❤❤❤☆☆☆☆")
+        print("☆☆☆❤英雄%s出世❤☆☆☆☆" % name)
+        print("☆☆☆❤❤❤❤❤❤❤❤☆☆☆☆")
+        print("☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆")
+        print("☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆")
+        return object.__new__(cls)
+
+    @property
+    def level(self):
+        return self._level
+
+    def fight(self,fight_type,other):
+        super().fight(fight_type,other)
+        
+        if other.hp<=0:
+            print("打死了怪物%s" % other.name)
+            self._experience+=other.level
+    
+    def upgrate(self):
+        
+        if self._experience >=self._need_ex:
+            self._level+=1
+            self._experience-=self._need_ex
+            self._need_ex = int(self._level)*2
+            print("☆☆☆☆☆☆☆☆☆☆☆☆☆☆")
+            print("☆☆☆☆☆☆☆☆☆☆☆☆☆☆")
+            print("orz     %s升级啦！！orz" % self._name)
+            print("☆☆☆☆☆☆☆☆☆☆☆☆☆☆")
+            print("☆☆☆☆☆☆☆☆☆☆☆☆☆☆")
+            self._attact+=5
+            self._magic+=5
+            self._HP=self.max_hp+20
+            self._MP=self.max_mp+20
+            self.max_hp=self._HP
+            self.max_mp=self._MP
+    def is_alive(self):
+        if self._HP <=0:
+            self._HP=0
+            print("%s被杀死了" % self._name)
+            return False
+        else:
+            return True     
+        
+
+    def __str__(self):
+        self.upgrate()
+        self.is_alive()
+        return "====Hero:%s====\n" % self._name +\
+               "英雄等级：%d\n"    % self._level +\
+               "经验值：%d\n"      % self._experience +\
+               "升级需经验：%d\n"  % self._need_ex +\
+               "物理攻击：%d\n"    % self._attact +\
+               "魔法攻击：%d\n"    % self._magic +\
+               "HP：%d\n"          % self._HP +\
+               "MP：%d\n"          % self._MP
+
+class Enemy(Robot):
+    """
+    敌人Model
+    name
+    display 显示当前状态
+    """
+    def __init__(self,name,level):
+        super().__init__(name)
+        self._level=level
+        self._HP=self._HP*int(level)
+        
+    @property
+    def level(self):
+        return self._level
+
+    def __new__(cls,name,level):
+        print("++++++++++++++++++++++++")
+        print("发现了新野怪 %s" % name)
+        print("++++++++++++++++++++++++")
+        return object.__new__(cls)
+
+    def is_alive(self):
+        if self._HP <=0:
+            self._HP=0
+            print("%s被杀死了" % self._name)
+            return False
+        else:
+            return True
+            
+    
+    def __str__(self):
+        self.is_alive()
+        return "====Enemy:%s====\n" % self._name +\
+               "怪物等级：%d\n"    % self._level +\
+               "物理攻击：%d\n"    % self._attact +\
+               "HP：%d\n"          % self._HP 
+               
+
+def occur_enemy(hero,monsters):
+    """
+    生成敌人
+    """
+    level=int(hero.level)
+    enemy_type=["Gumball","Werewolf","Zombie","Vampire","Mummy","Ghost","Dragon"]
+    enemy_letter=list('ASDFGHJKLZMXNCBVPOQIWUWEYRT')
+    name = sample(enemy_type,1)[0]+" "+sample(enemy_letter,1)[0]
+    n1=Enemy(name,level)
+    monsters.append(n1)
+    #print(n1)
+        
+    
+    
+
+
+
+def main():
+    jack=Hero("Jack")
+    print(jack)
+    monsters=[]
+    while len(monsters)<=3:
+        print("判断怪少于3个！")
+        occur_enemy(jack,monsters)
+        #occur_enemy(jack,monsters)
+        for monster in monsters:
+            
+            while monster.is_alive() and jack.is_alive():
+                """
+                野怪存活，根据判断攻击
+
+                """
+                print(monster)
+                print(jack)
+                attact_type=input("选择攻击方式：attact or magic ： ")
+                jack.fight('attact',monster) if attact_type =="a" \
+                                            else jack.fight('magic',monster)
+
+
+
+            else:
+                if not monster.is_alive():
+                    monsters.remove(monster)
+                    #occur_enemy(jack,monsters)
+                    print("还有几个怪",len(monsters))
+                    continue
+                else:
+                    if not jack.is_alive():
+                        print("英雄跪了！！！")
+                        print("Game Over！！！")
+                        break
+        print("还有几个怪",len(monsters))
+            
+        
+if __name__=="__main__":
+    main()
+
+
+
+
+
+
+
+    
